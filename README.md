@@ -58,6 +58,10 @@ sudo apt install python3-pip wireguard unzip awscli
 sudo pip3 install wgconfig boto3 paramiko scp awscli
 ```
 
+(Optional) GCP: 
+```angular2html
+sudo pip3 install google-api-python-client oauth2client
+```
 ```bash
 cd <your-ros2-workspace>/src
 git clone https://github.com/BerkeleyAutomation/FogROS2
