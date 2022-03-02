@@ -373,6 +373,7 @@ class GCP(CloudInstance):
 
     def create(self):
         self.create_gce_instance()
+        self.generate_key_pair()
         self.connect()
         self.install_ros()
         self.install_colcon()
@@ -476,3 +477,11 @@ class GCP(CloudInstance):
         print(response)
         ip = response['networkInterfaces'][0]['accessConfigs'][0]['natIP']
         return ip
+    
+    def generate_key_pair(self):
+        os.system("ssh-keygen -t rsa -f ~/.ssh/google_compute_engine")
+        return
+    
+    def connect(self):
+        os.system(f"gcloud compute ssh --zone {self.zone} {self.project_id} --project {self.project_id}")
+        return
