@@ -58,8 +58,7 @@ ARG USERNAME=root
 RUN cd ~ && mkdir fcl && \
   curl -L https://github.com/flexible-collision-library/fcl/archive/refs/tags/v0.6.0.tar.gz | tar -xz -C fcl --strip-components=1 && \
   mkdir fcl/build && cd fcl/build && cmake -DCMAKE_BUILD_TYPE=Release .. && \
-  make -j4 && sudo make install
-#$(nproc)
+  make -j4 && sudo make install && ldconfig
 
 # vscode remote env
 RUN mkdir -p /home/$USERNAME/.vscode-server/extensions \
@@ -72,5 +71,6 @@ RUN mkdir -p /home/$USERNAME/.vscode-server/extensions \
 WORKDIR /home/root/fog_ws
 RUN . /opt/ros/rolling/setup.sh && \
       colcon build --merge-install
+RUN rm -rf build
 
 CMD ["bash"]

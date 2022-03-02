@@ -396,11 +396,14 @@ namespace mpt_ros {
             std_msgs::msg::Float64MultiArray msg;
             msg.layout.data_offset = 0;
             msg.layout.dim.emplace_back();
+            RCLCPP_INFO(this->get_logger(), "Planner publish msg 1");
             if (!planner.solved()) {
+                RCLCPP_INFO(this->get_logger(), "Planner publish msg failed");
                 msg.layout.dim[0].label = "failed";
                 msg.layout.dim[0].size = 0;
                 msg.layout.dim[0].stride = 7;
             } else {
+                RCLCPP_INFO(this->get_logger(), "Planner publish msg 2");    
                 std::vector<State> path = planner.solution();
                 // auto it = path.begin();
                 // if (it != path.end()) {
@@ -416,14 +419,19 @@ namespace mpt_ros {
                 msg.layout.dim[1].label = "waypoint";
                 msg.layout.dim[1].size = 7;
                 msg.data.reserve(path.size() * 7);
+
+                RCLCPP_INFO(this->get_logger(), "Planner publish msg 3");
                 for (std::size_t i=0 ; i<path.size() ; ++i) {
                     for (int j=0 ; j<4 ; ++j)
                         msg.data.push_back(std::get<Eigen::Quaternion<S>>(path[i]).coeffs()[j]);
                     for (int j=0 ; j<3 ; ++j)
                         msg.data.push_back(std::get<Eigen::Matrix<S, 3, 1>>(path[i])[j]);
                 }
+                RCLCPP_INFO(this->get_logger(), "Planner publish msg 4");
+
             }
 
+            RCLCPP_INFO(this->get_logger(), "Planner publish msg");
             motionPlanPub_->publish(msg);
         }
 
@@ -616,7 +624,7 @@ namespace mpt_ros {
 
 int main(int argc, char *argv[]) {
     rclcpp::init(argc, argv);
-    mpt_ros::MPTNode<double> node;
+    auto n = std::make_shared<mpt_ros::MPTNode<double>>();
     // rclcpp::NodeHandle n;
 
     // // rclcpp::Subscriber sub = n.subscribe("chatter", 1000, chatterCallback);
@@ -625,9 +633,9 @@ int main(int argc, char *argv[]) {
     // rclcpp::Subscriber boundsSub = n.subscribe("environment_bounds", 1000, environmentBoundsCallback);
     // rclcpp::Subscriber planSub = n.subscribe("plan_start_to_goal", 1000, planStartToGoalCallback);
 
-    RCLCPP_INFO(node.get_logger(), "MPT node started");
+    RCLCPP_INFO(n->get_logger(), "MPT node started");
     
-    rclcpp::spin(std::make_shared<mpt_ros::MPTNode<double>>());
+    rclcpp::spin(n);
     
     return 0;
 }

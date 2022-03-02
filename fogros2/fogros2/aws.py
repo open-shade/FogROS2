@@ -120,6 +120,16 @@ class CloudInstance:
         self.scp.execute_cmd("sudo apt update")
         self.scp.execute_cmd("sudo apt install -y python3-colcon-common-extensions")
 
+    def install_fcl(self):
+        # self.scp.execute_cmd("sudo apt install -y libeigen3-dev libassimp-dev libccd-dev")
+        # self.scp.execute_cmd("cd ~ && mkdir fcl && \
+#   curl -L https://github.com/flexible-collision-library/fcl/archive/refs/tags/v0.6.0.tar.gz | tar -xz -C fcl --strip-components=1 && \
+#   mkdir fcl/build && cd fcl/build && cmake -DCMAKE_BUILD_TYPE=Release .. && \
+#   make -j4 && sudo make install")
+        self.scp.execute_cmd("sudo ldconfig")
+        self.scp.execute_cmd("source ~/fog_ws/install/setup.bash")
+
+
     def push_ros_workspace(self):
         # configure ROS env
         workspace_path = self.ros_workspace  #os.getenv("COLCON_PREFIX_PATH")
@@ -230,6 +240,7 @@ class AWS(CloudInstance):
         self.connect()
         self.install_ros()
         self.install_colcon()
+        self.install_fcl()
         self.install_cloud_dependencies()
         self.push_ros_workspace()
         #self.push_to_cloud_nodes()

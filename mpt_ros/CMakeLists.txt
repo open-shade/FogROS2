@@ -8,6 +8,7 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+# set(CMAKE_EXE_LINKER_FLAGS "-static")
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
@@ -20,8 +21,8 @@ find_package(geometry_msgs REQUIRED)
 # find_package(message_generation REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(OpenMP REQUIRED)
-# find_package(FCL REQUIRED)
-find_package(Assimp REQUIRED)
+# find_package(FCL 0.6 REQUIRED)
+find_package(assimp REQUIRED)
 
 find_package(fcl 0.6 QUIET)
 if(fcl_FOUND)
@@ -118,5 +119,23 @@ ament_target_dependencies(${PROJECT_NAME}_fetch_node
   rclpy
   std_msgs
   geometry_msgs)
+
+# Install launch files
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
+# Install Cpp executables
+install(TARGETS
+  ${PROJECT_NAME}_client ${PROJECT_NAME}_node ${PROJECT_NAME}_fetch_client ${PROJECT_NAME}_fetch_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install dependencies
+# install(FILES
+#   libfcl.so.0.6 libccd.so.2 libassimp.so.5 libdraco.so.4
+#   DESTINATION lib
+# )
 
 ament_package()

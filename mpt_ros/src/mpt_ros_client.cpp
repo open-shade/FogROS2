@@ -13,7 +13,7 @@ using std::placeholders::_1;
 using std::shared_ptr;
 
 std::vector<unsigned char> loadFile(const std::string& fileName) {
-    std::string home = getenv("HOME");
+    std::string home = "/home/root"; //getenv("HOME");
     std::string resourceDir = home + "/fog_ws/src/fogros2/mpt_ros/resources/ompl-app/3D/";
     std::vector<unsigned char> data;
     std::ifstream file(resourceDir + fileName, std::ios::binary);
@@ -69,9 +69,9 @@ static void motionPlanCallback(const std::shared_ptr<rclcpp::Node> &node, const 
 
         unsigned int rows = msg.layout.dim[0].size;
         unsigned int cols = msg.layout.dim[1].size;
-        
+
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m(rows, cols);
-        
+
         for (unsigned i=0 ; i<rows ; ++i)
             for (unsigned j=0 ; j<cols ; ++j)
                 m(i,j) = msg.data[i * msg.layout.dim[0].stride + j];
@@ -90,26 +90,27 @@ int main(int argc, char *argv[]) {
 
     // std::string envFile;
     // std::string robotFile;
-    
+
     // n.getParam("env", envFile);
     // n.getParam("robot", robotFile);
+    RCLCPP_INFO(node->get_logger(), "Initing");
 
-    
     auto envMeshPub = node->create_publisher<std_msgs::msg::UInt8MultiArray>("environment_mesh", 1000);
     auto robotMeshPub = node->create_publisher<std_msgs::msg::UInt8MultiArray>("robot_mesh", 1000);
     auto motionPlanRequestPub = node->create_publisher<mpt_ros::msg::MotionPlanRequest>("motion_plan_request", 1000);
     // rclcpp::Publisher boundsPub = n.advertise<std_msgs::msg::Float64MultiArray>("environment_bounds", 1000);
     // rclcpp::Publisher planPub = n.advertise<std_msgs::msg::Float64MultiArray>("plan_start_to_goal", 1000);
     auto motionPlanSub = node->create_subscription<std_msgs::msg::Float64MultiArray>(
-      "motion_plan", 1000, 
+      "motion_plan", 1000,
       [node] (const std_msgs::msg::Float64MultiArray msg){
           motionPlanCallback(node, msg);
-        });      
+        });
     //   std::bind(&motionPlanCallback, node , std::placeholders::_1));
     rclcpp::Rate loop_rate(10);
+    RCLCPP_INFO(node->get_logger(), "Entering loop");
 
     while (rclcpp::ok()) {
-        rclcpp::spin(node);
+        // rclcpp::spin(node); //Fix hang problem
         if (node->count_subscribers("environment_mesh") > 0 &&
             node->count_subscribers("robot_mesh") > 0 &&
             node->count_subscribers("motion_plan_request") > 0)
@@ -118,7 +119,7 @@ int main(int argc, char *argv[]) {
             break;
         loop_rate.sleep();
     }
-    
+
     if (rclcpp::ok()) {
         RCLCPP_INFO(node->get_logger(), "Sending env");
         mpt_ros::msg::MotionPlanRequest req;
@@ -135,7 +136,7 @@ int main(int argc, char *argv[]) {
         req.bounds_names = std::vector<std::string>(
             {{ "tx", "ty", "tz" }});
 
-        std::string scenario = "Twistycool";
+        std::string scenario = "Apartment"; //Apartment, Home, cubicles, Twistycool, ;
         if (scenario == "Apartment") {
             sendMesh(envMeshPub, "Apartment_env.dae");
             sendMesh(robotMeshPub, "Apartment_robot.dae");
@@ -174,39 +175,39 @@ int main(int argc, char *argv[]) {
             sendMesh(envMeshPub, "cubicles_env.dae");
             sendMesh(robotMeshPub, "cubicles_robot.dae");
             bounds <<
-	      -508.88, 319.62,
-	      -230.13, 531.87,
-	      -123.75, 101.0;
+          -508.88, 319.62,
+          -230.13, 531.87,
+          -123.75, 101.0;
             startAndGoal <<
-	      -4.96, 200,
-	      -40.62, -40.62,
-	      70.57, 70.57,
+          -4.96, 200,
+          -40.62, -40.62,
+          70.57, 70.57,
                 0, 0,
                 1, 1,
                 0, 0,
                 0, 0;
             req.min_solution_cost = 2800;
-	} else if (scenario == "Twistycool") {
+    } else if (scenario == "Twistycool") {
             // Ug, this seems to have a solution that is just to
             // interpolate from start to goal.
             sendMesh(envMeshPub, "Twistycool_env.dae");
             sendMesh(robotMeshPub, "Twistycool_robot.dae");
             bounds <<
-	      53.46, 402.96,
-	      -21.25, 269.25,
-	      -476.86, -91;
+          53.46, 402.96,
+          -21.25, 269.25,
+          -476.86, -91;
             startAndGoal <<
-	      270, 270,
-	      160,160,
-	      -200, -400,
+          270, 270,
+          160,160,
+          -200, -400,
                 0, 0,
                 1, 1,
                 0, 0,
                 0, 0;
-	} else {
+    } else {
             throw std::invalid_argument("unknown scenario: " + scenario);
         }
-
+        
         using Clock = std::chrono::steady_clock;
 
         auto startTime = Clock::now();
@@ -222,7 +223,7 @@ int main(int argc, char *argv[]) {
         motionPlanRequestPub->publish(req);
         //sendMatrix(boundsPub, bounds);
         //sendMatrix(planPub, startAndGoal);
-    
+
         // int count = 0;
         // while (rclcpp::ok()) {
         //     std_msgs::msg::String msg;
@@ -236,12 +237,12 @@ int main(int argc, char *argv[]) {
         //     chatter_pub.publish(msg);
 
         //     rclcpp::spin(node);
-            
+
         //     loop_rate.sleep();
         //     ++count;
         // }
         while (rclcpp::ok() && !gotPlan_) {
-            rclcpp::spin(node);
+            // rclcpp::spin(node);
             loop_rate.sleep();
         }
 
@@ -250,6 +251,6 @@ int main(int argc, char *argv[]) {
         std::cout << "Elapsed time: " << std::chrono::duration<double>(elapsed).count()
                   << std::endl;
     }
-    
+
     return 0;
 }

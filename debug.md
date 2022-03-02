@@ -9,21 +9,12 @@ docker build -t fogros2:latest .
 
 ## Docker run
 ```
-FOGROS_REPO=~/code/derek/FogROS2
+# FOGROS_REPO=~/code/derek/FogROS2
+FOGROS_REPO=~/FogROS2
 docker run -it --rm \
     --net=host --cap-add=NET_ADMIN \
     -v "${FOGROS_REPO}":/home/root/fog_ws/src/fogros2 \
     fogros2 /bin/bash
-```
-## Container environment
-In container, does:
-```
-export AWS_ACCESS_KEY_ID=AKIA6BOHFAN5MQFOLLVO
-export AWS_SECRET_ACCESS_KEY=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
-# export AWS_DEFAULT_REGION=us-east-2
-export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp 
-export CYCLONEDDS_URI=file://$(pwd)/install/share/fogros2/configs/cyclonedds.xml
-. /opt/ros/rolling/setup.sh
 ```
 ## vscode attach to the container
 In vscode, 
@@ -38,18 +29,51 @@ Add follwing to remote settings.json (one time)
 "python.analysis.extraPaths": ["/opt/ros/rolling/lib/python3.8/site-packages"],
 ```
 
-## Change code and Build
+## Container environment
+In container, does:
 ```
-colcon build --packages-select mpt_ros
-colcon build --merge-install
-# source install/setup.bash # we need it?
+export AWS_ACCESS_KEY_ID=AKIA6BOHFAN5MQFOLLVO
+export AWS_SECRET_ACCESS_KEY=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
+# export AWS_DEFAULT_REGION=us-east-2
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp 
+export CYCLONEDDS_URI=file://$(pwd)/install/share/fogros2/configs/cyclonedds.xml
+. /opt/ros/rolling/setup.sh
 ```
 
+## Change code and Build
+```
+colcon build --merge-install && source install/setup.bash
+```
+Build only one package:
+```
+rm -rf install
+colcon build --packages-select mpt_ros && source install/setup.bash
+```
 ## Test
 ```
-rm -f ./build/roscloud/CMakeCache.txt # fix cloud node build failure, TODO
-ros2 launch fogros2_examples talker.launch.py
-ros2 launch add_two_ints add_two_ints.launch.py
+source install/setup.bash
+rm -f ./build/mpt_ros/CMakeCache.txt # fix cloud node build failure, TODO
+ros2 launch mpt_ros mpt.launch.py
+```
+
+## Debug VM
+In container,
+```
+cd /tmp/fogros/<VM id>
+cat info # to get ip
+chmod 400 *.pem
+ssh -i <pem> ubuntu@<ip>
+```
+In VM, 
+```
+cd ~/fog_ws
+source ./install/setup.sh
+install/lib/mpt_ros/node
+```
+In container,
+```
+source ./install/setup.sh
+install/lib/mpt_ros/client
 ```
 
 ## Build docker image for production
@@ -61,17 +85,22 @@ docker build -t fogros2:latest .
 # Production
 ```
 docker run -it --rm --net=host --cap-add=NET_ADMIN fogros2
+
 export AWS_ACCESS_KEY_ID=AKIA6BOHFAN5MQFOLLVO
 export AWS_SECRET_ACCESS_KEY=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
 # export AWS_DEFAULT_REGION=us-east-2
-source install/setup.bash
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp 
 export CYCLONEDDS_URI=file://$(pwd)/install/share/fogros2/configs/cyclonedds.xml
-ros2 launch fogros2_examples talker.launch.py
-ros2 launch add_two_ints add_two_ints.launch.py
+
+. install/setup.bash
+rm -f ./build/mpt_ros/CMakeCache.txt # fix cloud node build failure, TODO
+colcon build --merge-install && source install/setup.bash
+ros2 launch mpt_ros mpt.launch.py
 ```
 
 # References
+- https://roboticsbackend.com/ros2-package-for-both-python-and-cpp-nodes/
+
 - https://osrf.github.io/ros2multirobotbook/ros2_api.html
 - https://thispointer.com/stdbind-tutorial-and-usage-details/
 - https://docs.ros.org/en/foxy/Contributing/Migration-Guide.html
