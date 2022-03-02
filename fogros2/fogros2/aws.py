@@ -385,7 +385,7 @@ class GCP(CloudInstance):
 
     def create_gce_instance(self):
         # choose image
-        image_response = self.compute.images().getFromFamily(project='debian-cloud', family='debian-9').execute()
+        image_response = self.compute.images().getFromFamily(project='ubuntu-os-cloud', family='ubuntu-2004-lts').execute()
         self.disk_image = image_response['selfLink']
 
         # configure machine
