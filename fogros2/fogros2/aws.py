@@ -485,3 +485,13 @@ class GCP(CloudInstance):
     def connect(self):
         os.system(f"gcloud compute ssh --zone {self.zone} {self.project_id} --project {self.project_id}")
         return
+    
+    def query_region(self, region):
+        request = self.compute.instances().list(project=self.project_id, zone=region)
+        while request is not None:
+            response = request.execute()
+
+            for instance in response['items']:
+                #TODO: Do some command.
+
+            request = service.instances().list_next(previous_request=request, previous_response=response)
