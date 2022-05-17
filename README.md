@@ -2,12 +2,7 @@
 
 [`FogROS2`](https://github.com/BerkeleyAutomation/FogROS2) extends ROS 2 for the cloud deployment of computational graphs in a security-conscius manner. It allows researchers to easily deploy ROS abstractions across cloud providers with minimal effort, security and correspondingly, securly gain access to additional computing substrates including CPU cores, GPUs, FPGAs or TPUs, as well as predeployed software made available by other researchers. To do so, `FogROS2` extends the ROS 2 launch system introducing additional syntax to allow roboticists to specify at launch time which components of their architecture will be deployed to the cloud and which ones on the edge.
 
-If you find this useful, please cite our work:
-
-```
-TODO:introduce citation in here before going public
-```
-
+*Please note, all active development is presently on the `humble` branch.*
 
 - [FogROS2](#fogros2)
   - [Install](#install)
